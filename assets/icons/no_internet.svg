@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" stroke="#000000" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+  <!-- arcs for wifi -->
+  <path d="M16 28 C24 20, 40 20, 48 28" fill="none" />
+  <path d="M20 34 C26 28, 38 28, 44 34" fill="none" />
+  <path d="M24 40 C28 36, 36 36, 40 40" fill="none" />
+  <circle cx="32" cy="48" r="4" fill="#FAD02E" stroke="#000000" />
+  <circle cx="32" cy="48" r="2" fill="#fe8c27" stroke="none" />
+  <!-- slash across wifi icon to indicate no connection -->
+  <line x1="16" y1="16" x2="48" y2="48" stroke="#000000" stroke-width="6" />
+</svg>

@@ -1,0 +1,313 @@
+:root {
+  --color-bg: #10131a;
+  --color-surface: #161b24;
+  --color-surface-alt: #1f2532;
+  --color-border: #2c3446;
+  --color-primary: #4a9fff;
+  --color-primary-light: #7bb6ff;
+  --color-danger: #ff5f5f;
+  --color-success: #4ad07d;
+  --color-text: #f7f9fc;
+  --color-text-muted: #9aa6bf;
+  --shadow-elevation: 0 16px 32px rgba(12, 16, 24, 0.45);
+  --board-size: min(90vw, 420px);
+  --transition-fast: 150ms ease;
+  --transition-slow: 300ms ease;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  background: radial-gradient(circle at top, #151a23 0%, #0b0e13 45%, #010206 100%);
+  color: var(--color-text);
+}
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+button {
+  font: inherit;
+  border: none;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.game-container {
+  width: 100%;
+  max-width: 500px;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 16px;
+  padding: 18px;
+  background: rgba(15, 20, 28, 0.92);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  box-shadow: var(--shadow-elevation);
+  position: relative;
+  overflow: hidden;
+}
+
+.player-info {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: center;
+  gap: 12px;
+}
+
+.player-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  border-radius: 16px;
+  background: var(--color-surface);
+  border: 1px solid transparent;
+  transition: border-color var(--transition-fast), transform var(--transition-fast), opacity var(--transition-fast);
+}
+
+.player-card.active {
+  border-color: var(--color-primary);
+  transform: translateY(-4px);
+}
+
+.player-card.disconnected {
+  opacity: 0.5;
+  border-color: rgba(255, 95, 95, 0.35);
+}
+
+.player-symbol {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-primary-light);
+}
+
+.player-name {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.player-stake {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.turn-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px;
+  background: var(--color-surface-alt);
+  border-radius: 16px;
+}
+
+#turn-text {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+}
+
+.timer {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.timer.warning {
+  color: #ffb347;
+  animation: pulse 1s infinite;
+}
+
+.timer.danger {
+  color: var(--color-danger);
+  animation: pulse 0.6s infinite;
+}
+
+.board-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.game-board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  width: var(--board-size);
+  height: var(--board-size);
+  border-radius: 24px;
+  overflow: hidden;
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+}
+
+.board-cell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 52px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition-fast), transform var(--transition-fast);
+  color: var(--color-primary-light);
+}
+
+.board-cell[data-symbol='O'] {
+  color: #ff8bd8;
+}
+
+.board-cell:active:not(:disabled) {
+  transform: scale(0.96);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.board-cell.winning {
+  background: rgba(74, 159, 255, 0.16);
+  color: #fff;
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  align-items: center;
+}
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: rgba(74, 159, 255, 0.08);
+}
+
+.status-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-success);
+  box-shadow: 0 0 8px var(--color-success);
+  transition: background var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.status-indicator.connecting {
+  background: #ffb347;
+  box-shadow: 0 0 8px #ffb347;
+}
+
+.status-indicator.disconnected {
+  background: var(--color-danger);
+  box-shadow: 0 0 8px var(--color-danger);
+}
+
+.overlay,
+.modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(4, 7, 12, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 50;
+  transition: opacity var(--transition-slow);
+}
+
+.overlay.hidden,
+.modal.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.overlay-content,
+.modal-content {
+  padding: 24px;
+  border-radius: 20px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-elevation);
+  width: min(90vw, 420px);
+  text-align: center;
+  display: grid;
+  gap: 16px;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto;
+  border-radius: 50%;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--color-primary);
+  animation: spin 0.9s linear infinite;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 20, 28, 0.95);
+  color: var(--color-text);
+  padding: 12px 18px;
+  border-radius: 16px;
+  box-shadow: var(--shadow-elevation);
+  opacity: 0;
+  transition: opacity var(--transition-slow), transform var(--transition-slow);
+  pointer-events: none;
+  z-index: 100;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translate(-50%, -8px);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}

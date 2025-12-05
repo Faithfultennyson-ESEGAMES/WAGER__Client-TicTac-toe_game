@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Tic Tac Toe</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/mobile.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+</head>
+<body>
+  <div id="game-container" class="game-container">
+    <header id="player-info" class="player-info">
+      <div class="player-card" id="player-x">
+        <span class="player-symbol">X</span>
+        <span class="player-name" id="player-x-name">Waiting...</span>
+        <span class="player-stake" id="player-x-stake"></span>
+      </div>
+      <div class="turn-indicator" id="turn-indicator">
+        <span id="turn-text">Waiting for match...</span>
+        <div class="timer" id="turn-timer">--</div>
+      </div>
+      <div class="player-card" id="player-o">
+        <span class="player-symbol">O</span>
+        <span class="player-name" id="player-o-name">Waiting...</span>
+        <span class="player-stake" id="player-o-stake"></span>
+      </div>
+    </header>
+
+    <main id="board-wrapper" class="board-wrapper">
+      <div id="game-board" class="game-board" role="grid" aria-label="Tic Tac Toe board">
+        <button class="board-cell" data-index="0" aria-label="Cell 1" role="gridcell"></button>
+        <button class="board-cell" data-index="1" aria-label="Cell 2" role="gridcell"></button>
+        <button class="board-cell" data-index="2" aria-label="Cell 3" role="gridcell"></button>
+        <button class="board-cell" data-index="3" aria-label="Cell 4" role="gridcell"></button>
+        <button class="board-cell" data-index="4" aria-label="Cell 5" role="gridcell"></button>
+        <button class="board-cell" data-index="5" aria-label="Cell 6" role="gridcell"></button>
+        <button class="board-cell" data-index="6" aria-label="Cell 7" role="gridcell"></button>
+        <button class="board-cell" data-index="7" aria-label="Cell 8" role="gridcell"></button>
+        <button class="board-cell" data-index="8" aria-label="Cell 9" role="gridcell"></button>
+      </div>
+    </main>
+
+    <footer class="controls">
+      <div id="connection-status" class="connection-status">
+        <span id="status-indicator" class="status-indicator connected"></span>
+        <span id="status-text">Connected</span>
+      </div>
+    </footer>
+  </div>
+
+  <section id="overlay" class="overlay hidden" aria-live="polite">
+    <div class="overlay-content">
+      <div id="overlay-spinner" class="spinner"></div>
+      <h2 id="overlay-title">Connecting...</h2>
+      <p id="overlay-message">Please wait while we prepare your game.</p>
+      <button id="overlay-action" class="control-btn hidden">Retry</button>
+    </div>
+  </section>
+
+  <section id="result-modal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-content">
+      <h2 id="result-title">Game Over</h2>
+      <p id="result-summary"></p>
+      <div class="modal-actions">
+        <button id="result-close-btn" class.ts="control-btn">Close</button>
+        <button id="result-requeue-btn" class="control-btn primary">Find New Game</button>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // Always load Socket.IO from CDN to avoid cross-origin script issues.
+    // Exposes window.io for gameClient.js
+    (function loadSocketIo() {
+      const s = document.createElement("script");
+      s.src = "https://cdn.jsdelivr.net/npm/socket.io-client@4/dist/socket.io.min.js";
+      s.async = true;
+      s.crossOrigin = "anonymous";
+      s.onload = () => console.info("[Socket] client lib loaded");
+      s.onerror = (e) => console.error("[Socket] client lib failed", e);
+      document.head.appendChild(s);
+    })();
+  </script>
+
+  <script type="module" src="js/debug.js"></script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
