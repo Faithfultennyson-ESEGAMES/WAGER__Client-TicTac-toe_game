@@ -29,6 +29,7 @@ class UIManager {
     this.resultTitle = document.getElementById('result-title');
     this.resultSummary = document.getElementById('result-summary');
     this.toastEl = null;
+    this.lastMoveSoundAt = 0;
   }
 
   bindBoardHandlers(handler) {
@@ -54,6 +55,12 @@ class UIManager {
     });
   }
 
+  setSelectedSymbol(index) {
+    this.cells.forEach((cell, i) => {
+        cell.classList.toggle('selected', i === index);
+    });
+  }
+
   markWinningCells(cells = []) {
     this.cells.forEach((cell, index) => {
       if (cells.includes(index)) {
@@ -64,11 +71,25 @@ class UIManager {
     });
   }
 
+  formatPlayerName(name) {
+    if (name === null || name === undefined) {
+      return 'Waiting...';
+    }
+    const text = String(name).trim();
+    if (!text) {
+      return 'Waiting...';
+    }
+    if (text.length <= 12) {
+      return text;
+    }
+    return `${text.slice(0, 10)}..`;
+  }
+
   updatePlayers(players = {}) {
     ['X', 'O'].forEach((symbol) => {
       const card = this.playerCards[symbol];
       const info = players[symbol] || {};
-      this.playerNames[symbol].textContent = info.name || 'Waiting...';
+      this.playerNames[symbol].textContent = this.formatPlayerName(info.name);
       this.playerStakes[symbol].textContent = info.stake ? `${info.stake} credits` : '';
       card.classList.toggle('disconnected', info.connected === false);
     });
@@ -100,6 +121,7 @@ class UIManager {
   }
 
   showOverlay({ title, message, actionLabel, actionHandler, showSpinner = true }) {
+    this.overlay.classList.remove('banner');
     this.overlay.classList.remove('hidden');
     this.overlayTitle.textContent = title;
     this.overlayMessage.textContent = message;
@@ -116,6 +138,7 @@ class UIManager {
 
   hideOverlay() {
     this.overlay.classList.add('hidden');
+    this.overlay.classList.remove('banner');
   }
 
   showResult({ title, summary }) {
@@ -143,10 +166,18 @@ class UIManager {
   }
 
   onMovePlaced(symbol) {
+    // Ensure context is resumed before playing.
+    audioManager.ensureContextReady()?.catch?.(() => {});
+    const now = Date.now();
+    if (now - this.lastMoveSoundAt < 150) {
+      return; // debounce overlapping plays
+    }
+    this.lastMoveSoundAt = now;
     audioManager.play(symbol === 'X' ? 'xPlace' : 'oPlace');
   }
 
   onGameEnded({ outcome, winnerSymbol, isLocalWinner }) {
+    audioManager.ensureContextReady()?.catch?.(() => {});
     if (outcome === 'draw') {
       audioManager.play('gameLost');
       return;
@@ -177,6 +208,7 @@ class UIManager {
       message: 'Session closed. Waiting to finish...',
       showSpinner: false,
     });
+    this.overlay.classList.add('banner');
   }
 
   updateEndScreenTimer(seconds) {

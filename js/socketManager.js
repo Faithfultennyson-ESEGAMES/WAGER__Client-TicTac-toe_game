@@ -1,4 +1,3 @@
-import debug from './debug.js';
 import ConnectionManager from "./connectionManager.js";
 
 class SocketManager {
@@ -11,8 +10,6 @@ class SocketManager {
   }
 
   async connect() {
-    debug.log('[SocketManager] connect() invoked', { url: this.url, hasExisting: !!this.socket });
-
     if (this.socket?.connected) {
       return this.socket;
     }
@@ -32,8 +29,8 @@ class SocketManager {
 
       this.socket = window.io(this.url, {
         path: '/socket.io',
-        transports: ['websocket'], // avoid polling to bypass CORS header on XHR
-        upgrade: false,
+        transports: ['websocket', 'polling'],
+        upgrade: true,
         reconnection: true,
         reconnectionDelay: 1000,
         reconnectionDelayMax: 5000,
@@ -57,7 +54,6 @@ class SocketManager {
       };
 
       const onError = (error) => {
-        debug.error('[SocketManager] connect error', error);
         this.connectionManager.setStatus('error', { error });
       };
 
@@ -90,7 +86,6 @@ class SocketManager {
         elapsedTime += interval;
         if (elapsedTime >= maxWaitMs) {
           clearInterval(handle);
-          debug.error('[SocketManager] window.io not found after timeout.');
           reject(new Error('Socket.IO client library not loaded.'));
         }
       }, interval);
@@ -102,27 +97,22 @@ class SocketManager {
     if (!this.socket) return;
 
     this.socket.on('connect', () => {
-      debug.log('[SocketManager] connected', { id: this.socket.id });
       this.connectionManager.setStatus('connected');
     });
 
     this.socket.on('disconnect', (reason) => {
-      debug.warn('[SocketManager] disconnected', { reason });
       this.connectionManager.setStatus('disconnected', { reason });
     });
 
     this.socket.io.on('reconnect_attempt', (attempt) => {
-      debug.log('[SocketManager] reconnect_attempt', { attempt });
       this.connectionManager.setStatus('reconnecting', { attempt });
     });
 
     this.socket.io.on('reconnect_failed', () => {
-        debug.error('[SocketManager] Reconnect failed after all attempts');
         this.connectionManager.setStatus('error', { error: 'reconnect_failed' });
     });
 
     this.socket.on('connect_error', (error) => {
-      debug.error('[SocketManager] connect_error event', error);
       this.connectionManager.setStatus('error', { error });
     });
   }
@@ -157,7 +147,6 @@ class SocketManager {
     this.socket.disconnect();
     this.socket = null;
     this.registeredHandlers.clear();
-    debug.log('[SocketManager] Disconnected and cleaned up.');
   }
 }
 

@@ -54,8 +54,12 @@ class AudioManager {
       if (key === 'timerWarning') {
         audio.loop = true;
       }
-      audio.addEventListener('canplaythrough', resolve, { once: true });
-      audio.addEventListener('error', resolve, { once: true });
+      audio.addEventListener('canplaythrough', () => {
+        resolve();
+      }, { once: true });
+      audio.addEventListener('error', (e) => {
+        resolve();
+      }, { once: true });
       audio.load();
       this.sounds[key] = audio;
     });
@@ -70,7 +74,6 @@ class AudioManager {
       const arrayBuffer = await response.arrayBuffer();
       this.timerBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
     } catch (error) {
-      console.warn('Failed to prepare timer buffer', error);
       this.timerBuffer = null;
     }
   }
@@ -87,7 +90,6 @@ class AudioManager {
       try {
         await this.audioContext.resume();
       } catch (error) {
-        console.warn('Audio context resume failed', error);
       }
     }
   }
@@ -98,12 +100,30 @@ class AudioManager {
     }
 
     const audio = this.sounds[name];
-    try {
-      audio.currentTime = 0;
-      audio.play().catch(() => {});
-    } catch (error) {
-      console.warn('Audio play failed', error);
-    }
+    const attemptPlay = async () => {
+      try {
+        await this.ensureContextReady();
+        audio.currentTime = 0;
+        const playPromise = audio.play();
+        if (playPromise?.catch) {
+          await playPromise;
+        }
+      } catch (error) {
+        // Fallback only if nothing started playing
+        if (audio.paused) {
+          try {
+            const clone = audio.cloneNode(true);
+            clone.currentTime = 0;
+            const clonePromise = clone.play();
+            if (clonePromise?.catch) {
+              await clonePromise;
+            }
+          } catch (err) {
+          }
+        }
+      }
+    };
+    attemptPlay();
   }
 
   startTimerWarning() {
@@ -114,14 +134,17 @@ class AudioManager {
     this.timerWarningActive = true;
 
     if (this.audioContext && this.timerBuffer) {
-      this.ensureContextReady();
-      const source = this.audioContext.createBufferSource();
-      source.buffer = this.timerBuffer;
-      source.loop = true;
-      source.connect(this.audioContext.destination);
-      source.start(0);
-      this.timerSource = source;
-      return;
+      this.ensureContextReady()?.catch?.(() => {});
+      try {
+        const source = this.audioContext.createBufferSource();
+        source.buffer = this.timerBuffer;
+        source.loop = true;
+        source.connect(this.audioContext.destination);
+        source.start(0);
+        this.timerSource = source;
+        return;
+      } catch (error) {
+      }
     }
 
     const warning = this.sounds.timerWarning;
