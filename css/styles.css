@@ -12,6 +12,9 @@
   --color-text-muted: #9aa6bf;
   --color-player-x: #f4d35e;
   --color-player-o: #ff8bd8;
+  --color-active-bg: #EAB543;
+  --color-active-text: #000000;
+  --color-active-symbol: #333333;
   --shadow-elevation: 0 16px 32px rgba(12, 16, 24, 0.45);
   --board-size: min(90vw, 420px);
   --transition-fast: 150ms ease;
@@ -82,12 +85,21 @@ button:disabled {
   border-radius: 16px;
   background: var(--color-surface);
   border: 1px solid transparent;
-  transition: border-color var(--transition-fast), transform var(--transition-fast), opacity var(--transition-fast);
+  transition: border-color var(--transition-fast), transform var(--transition-fast), opacity var(--transition-fast), background-color var(--transition-fast);
 }
 
 .player-card.active {
-  border-color: var(--color-primary);
+  background-color: var(--color-active-bg);
+  border-color: transparent;
   transform: translateY(-4px);
+}
+
+#player-info .player-card.active .player-name {
+  color: var(--color-active-text);
+}
+
+#player-info .player-card.active .player-symbol {
+  color: var(--color-active-symbol);
 }
 
 .player-card.disconnected {
@@ -99,6 +111,10 @@ button:disabled {
   font-size: 22px;
   font-weight: 700;
   color: var(--color-primary-light);
+}
+
+#player-o .player-symbol {
+    color: var(--color-player-o);
 }
 
 .player-name {
