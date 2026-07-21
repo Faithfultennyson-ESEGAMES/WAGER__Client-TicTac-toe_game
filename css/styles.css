@@ -16,7 +16,11 @@
   --color-active-text: #000000;
   --color-active-symbol: #333333;
   --shadow-elevation: 0 16px 32px rgba(12, 16, 24, 0.45);
-  --board-size: min(90vw, 420px);
+  /* Fixed "design canvas": the whole game is authored at this width and
+     uniformly scaled (up or down) by JS to fit any frame, so the portrait
+     design is always preserved — never reflowed or split. */
+  --design-width: 440px;
+  --board-size: 384px;
   --transition-fast: 150ms ease;
   --transition-slow: 300ms ease;
 }
@@ -39,7 +43,19 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
+  padding: 0;
+  /* The game is scaled to fit; the page itself never scrolls in a webview. */
+  overflow: hidden;
+}
+
+/* Centering stage for the scaled game canvas. */
+.viewport-stage {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
 
 button {
@@ -56,8 +72,8 @@ button:disabled {
 }
 
 .game-container {
-  width: 100%;
-  max-width: 500px;
+  width: var(--design-width);
+  flex: 0 0 auto;
   display: grid;
   grid-template-rows: auto 1fr auto;
   gap: 16px;
@@ -68,6 +84,39 @@ button:disabled {
   box-shadow: var(--shadow-elevation);
   position: relative;
   overflow: hidden;
+  /* Scaled uniformly by viewportScaler.js; scale around the center. */
+  transform-origin: center center;
+  will-change: transform;
+}
+
+.mute-btn {
+  width: 48px;
+  height: 48px;
+  padding: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  transition: transform var(--transition-fast), background var(--transition-fast);
+}
+
+.mute-btn:active {
+  transform: scale(0.92);
+}
+
+.mute-btn.muted {
+  background: rgba(255, 95, 95, 0.12);
+  border-color: rgba(255, 95, 95, 0.35);
+}
+
+.mute-icon {
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+  user-select: none;
 }
 
 .player-info {
@@ -223,7 +272,7 @@ button:disabled {
 
 .controls {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr auto;
   gap: 12px;
   align-items: center;
 }

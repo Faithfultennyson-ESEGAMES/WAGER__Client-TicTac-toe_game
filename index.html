@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="css/animations.css" />
 </head>
 <body>
+  <div id="viewport-stage" class="viewport-stage">
   <div id="game-container" class="game-container">
     <header id="player-info" class="player-info">
       <div class="player-card" id="player-x">
@@ -49,7 +50,11 @@
         <span id="status-indicator" class="status-indicator connected"></span>
         <span id="status-text">Connected</span>
       </div>
+      <button id="mute-btn" class="mute-btn" type="button" aria-label="Mute sound" aria-pressed="false">
+        <img id="mute-icon" class="mute-icon" src="assets/icons/speaker_on.svg" alt="" draggable="false" />
+      </button>
     </footer>
+  </div>
   </div>
 
   <section id="overlay" class="overlay hidden" aria-live="polite">

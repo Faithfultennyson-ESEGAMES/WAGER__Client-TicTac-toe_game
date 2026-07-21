@@ -100,9 +100,23 @@ class GameClient {
 
   bindUIEvents() {
     this.ui.bindBoardHandlers((index) => this.handleCellSelection(index));
+    this.ui.setupMuteButton();
     document.getElementById('result-close-btn').addEventListener('click', () => this.ui.hideResult());
+
+    // Immediate, low-latency click feedback on any interactive control.
+    document.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('.board-cell, .control-btn, .mute-btn')) {
+        this.ui.playClick();
+      }
+    });
+
+    // First user gesture: unlock audio and start background music (autoplay
+    // policies in webviews require a gesture before playback).
     ['pointerdown','click','touchstart','keydown'].forEach(evt => {
-      window.addEventListener(evt, () => audioManager.ensureContextReady()?.catch?.(() => {}), { once: true });
+      window.addEventListener(evt, () => {
+        audioManager.ensureContextReady()?.catch?.(() => {});
+        this.ui.startMusic();
+      }, { once: true });
     });
   }
 
@@ -509,7 +523,11 @@ class GameClient {
   async fetchSessionState(sessionId) {
     if (!this.apiBase) return null;
     try {
-      const response = await fetch(`${this.apiBase}/session/${sessionId}`);
+      // no-store: session state must always be fresh inside app/website webviews.
+      const response = await fetch(`${this.apiBase}/session/${sessionId}`, {
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache' },
+      });
       if (!response.ok) return null;
       return await response.json();
     } catch (error) {

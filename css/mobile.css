@@ -1,79 +1,25 @@
-@media (max-width: 480px) {
+/*
+ * Responsiveness is handled by uniform scaling (see js/viewportScaler.js), not
+ * by media-query reflow. The game is authored once at its design size and
+ * scaled to fit any frame, so the portrait layout is NEVER split or
+ * rearranged — on a wide phone, a tall phone, a folded Z Fold cover screen or
+ * a large desktop it is always the same design, just a different scale.
+ *
+ * The previous @media (max-width) tweaks and the landscape "board | info"
+ * split were intentionally removed because they fought the scaler and produced
+ * the squashed / split layout we are fixing.
+ *
+ * Keep genuinely device-specific, non-layout concerns (e.g. safe-area insets)
+ * here if needed.
+ */
+
+/* Respect iOS notch / safe areas without changing the design. */
+@supports (padding: env(safe-area-inset-top)) {
   body {
-    padding: 12px;
-  }
-
-  .game-container {
-    padding: 16px;
-    border-radius: 20px;
-    gap: 14px;
-    min-width: 320px;
-  }
-
-  .player-info {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    column-gap: 8px;
-    row-gap: 8px;
-  }
-
-  .player-card {
-    padding: 9px;
-  }
-
-  .board-wrapper {
-    padding: 6px 0;
-  }
-
-  .game-board {
-    --board-size: min(90vw, 360px);
-    border-radius: 16px;
-  }
-
-  .board-cell {
-    font-size: 46px;
-  }
-
-  .controls {
-    grid-template-columns: 1fr;
-  }
-
-  .connection-status {
-    justify-content: flex-start;
-  }
-
-  .overlay-content,
-  .modal-content {
-    width: min(92vw, 360px);
-    padding: 20px;
-  }
-}
-
-@media (max-height: 640px) and (orientation: landscape) {
-  body {
-    padding: 4px;
-  }
-
-  .game-container {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-rows: auto 1fr;
-    grid-template-areas:
-      'board player-info'
-      'board controls';
-    max-width: 700px;
-  }
-
-  #player-info {
-    grid-area: player-info;
-    grid-template-columns: 1fr;
-    row-gap: 8px;
-  }
-
-  #board-wrapper {
-    grid-area: board;
-  }
-
-  .controls {
-    grid-area: controls;
-    grid-template-columns: 1fr;
+    padding:
+      env(safe-area-inset-top)
+      env(safe-area-inset-right)
+      env(safe-area-inset-bottom)
+      env(safe-area-inset-left);
   }
 }

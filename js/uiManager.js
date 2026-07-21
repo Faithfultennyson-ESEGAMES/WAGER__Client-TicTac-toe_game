@@ -28,8 +28,44 @@ class UIManager {
     this.resultModal = document.getElementById('result-modal');
     this.resultTitle = document.getElementById('result-title');
     this.resultSummary = document.getElementById('result-summary');
+    this.muteBtn = document.getElementById('mute-btn');
+    this.muteIcon = document.getElementById('mute-icon');
     this.toastEl = null;
     this.lastMoveSoundAt = 0;
+  }
+
+  // Wire the master mute toggle and reflect the persisted preference.
+  setupMuteButton() {
+    if (!this.muteBtn) return;
+    this.renderMuteState(audioManager.isMuted());
+    this.muteBtn.addEventListener('click', () => {
+      const muted = audioManager.toggleMuted();
+      this.renderMuteState(muted);
+      if (!muted) {
+        // give feedback that sound is back on
+        audioManager.playClick();
+      }
+    });
+  }
+
+  renderMuteState(muted) {
+    if (!this.muteBtn) return;
+    this.muteBtn.classList.toggle('muted', muted);
+    this.muteBtn.setAttribute('aria-pressed', String(muted));
+    this.muteBtn.setAttribute('aria-label', muted ? 'Unmute sound' : 'Mute sound');
+    if (this.muteIcon) {
+      this.muteIcon.src = muted
+        ? 'assets/icons/speaker_off.svg'
+        : 'assets/icons/speaker_on.svg';
+    }
+  }
+
+  playClick() {
+    audioManager.playClick();
+  }
+
+  startMusic() {
+    audioManager.startMusic();
   }
 
   bindBoardHandlers(handler) {
