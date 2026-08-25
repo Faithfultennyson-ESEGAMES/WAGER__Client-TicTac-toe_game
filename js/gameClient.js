@@ -463,7 +463,7 @@ class GameClient {
     const warnThresholdSec = Math.max(1, Math.ceil(totalDurationSec * 0.3));
 
     this.turnTick = setInterval(() => {
-      const remaining = Math.max(0, expiry - Date.now());
+      const remaining = Math.max(0, expiry - this.socketManager.now());
       const seconds = Math.ceil(remaining / 1000);
       const display = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
       let state = 'normal';
@@ -486,7 +486,7 @@ class GameClient {
 
   computeTurnDurationSec(expiryMs) {
     if (this.turnDurationSec) return this.turnDurationSec;
-    const guess = Math.ceil((expiryMs - Date.now()) / 1000);
+    const guess = Math.ceil((expiryMs - this.socketManager.now()) / 1000);
     return Math.max(guess, 1);
   }
 

@@ -7,6 +7,10 @@ class SocketManager {
     this.socket = null;
     this.registeredHandlers = new Map();
     this.connectionManager = new ConnectionManager(connectionCallbacks);
+    // Offset (ms) to add to this device's Date.now() to approximate the
+    // server's clock. Measured via syncClock(); stays 0 (no correction)
+    // until the first sync round trip completes.
+    this.clockOffsetMs = 0;
   }
 
   async connect() {
@@ -98,6 +102,9 @@ class SocketManager {
 
     this.socket.on('connect', () => {
       this.connectionManager.setStatus('connected');
+      // Re-measure on every (re)connect: the network path, and therefore
+      // the RTT/offset estimate, can change across reconnects.
+      this.syncClock();
     });
 
     this.socket.on('disconnect', (reason) => {
@@ -117,6 +124,40 @@ class SocketManager {
     });
   }
 
+  // Measures the offset between this device's clock and the server's clock
+  // by round-tripping a 'time-sync' event a few times and keeping the
+  // sample with the lowest RTT (least jitter). The result is applied via
+  // now() so countdowns rendered against server timestamps aren't thrown
+  // off by a wrong/unsynced device clock.
+  syncClock(samples = 3) {
+    if (!this.socket) return;
+    let bestRtt = Infinity;
+    let completed = 0;
+
+    const runSample = () => {
+      const sentAt = Date.now();
+      this.socket.emit('time-sync', sentAt, (serverTime) => {
+        const receivedAt = Date.now();
+        const rtt = receivedAt - sentAt;
+        if (rtt < bestRtt) {
+          bestRtt = rtt;
+          this.clockOffsetMs = serverTime + (rtt / 2) - receivedAt;
+        }
+        completed += 1;
+        if (completed < samples) runSample();
+      });
+    };
+
+    runSample();
+  }
+
+  // Current time corrected by the measured server clock offset. Use this
+  // instead of raw Date.now() whenever comparing against a server-issued
+  // absolute timestamp (e.g. turn expiry).
+  now() {
+    return Date.now() + this.clockOffsetMs;
+  }
+
   on(event, handler) {
     if (!this.socket) throw new Error('Socket not initialized yet');
     this.socket.on(event, handler);
@@ -129,14 +170,32 @@ class SocketManager {
     this.registeredHandlers.get(event)?.delete(handler);
   }
 
+  // Returns a Promise so callers can .catch() dispatch failures instead of
+  // relying on a server-side ack: none of this server's handlers
+  // (join/make-move/relocate-move) ever invoke the Socket.IO ack callback —
+  // they report outcomes via separate broadcast events (move-applied /
+  // move-error) instead. So this resolves once the event has been handed
+  // off to the socket successfully, and rejects if that dispatch couldn't
+  // happen at all (no socket, or socket.emit throwing synchronously). The
+  // optional callback is still wired through as the ack listener in case a
+  // future event does start acking.
   emit(event, payload = {}, callback = () => {}) {
-    if (!this.socket) throw new Error('Socket not connected yet');
-    this.socket.emit(event, payload, callback);
+    return new Promise((resolve, reject) => {
+      if (!this.socket) {
+        reject(new Error('Socket not connected yet'));
+        return;
+      }
+      try {
+        this.socket.emit(event, payload, callback);
+        resolve();
+      } catch (error) {
+        reject(error);
+      }
+    });
   }
 
   makeMove(payload) {
-    this.emit('make-move', payload);
-    return Promise.resolve();
+    return this.emit('make-move', payload);
   }
 
   disconnect() {
